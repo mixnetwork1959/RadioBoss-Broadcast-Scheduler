@@ -110,6 +110,14 @@ class PublicCalendarTab:
             highlightcolor=theme["accent"]
         )
 
+    def set_schedule(self, events, runtimes):
+        """Reload both public-calendar candidates and preview after SDL switch."""
+        self.events = events
+        self.runtimes = runtimes
+        self.suggested_ids = self._detect_program_candidates()
+        self._load_candidates()
+        self._refresh_preview()
+
     # =================================================
     # Candidate Detection
     # =================================================

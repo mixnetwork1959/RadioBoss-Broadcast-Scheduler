@@ -14,6 +14,7 @@ import tkinter as tk
 def create_menu(
     root,
     refresh_command,
+    open_sdl_command,
     theme_var,
     theme_command,
     themes
@@ -24,6 +25,11 @@ def create_menu(
     file_menu = tk.Menu(
         menubar,
         tearoff=0
+    )
+
+    file_menu.add_command(
+        label="Open SDL...",
+        command=open_sdl_command
     )
 
     file_menu.add_command(
