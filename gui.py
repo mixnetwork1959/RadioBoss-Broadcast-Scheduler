@@ -4,8 +4,12 @@
 # gui.py
 # ==========================================
 
+import os
+import sys
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
+from pathlib import Path
+from database import Database
 
 from gui_tree import (
     sort_column,
@@ -50,6 +54,15 @@ from theme_manager import (
 def show_events(controller, runtimes, settings):
 
     root = tk.Tk()
+
+    # Use the original old-radio icon in both source and frozen builds.
+    resources = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    icon_file = resources / "BroadcastScheduler.ico"
+    if icon_file.is_file():
+        try:
+            root.iconbitmap(str(icon_file))
+        except tk.TclError:
+            pass
 
     root.title("Broadcast Scheduler 4.5.0")
     root.geometry("1600x900")
@@ -284,6 +297,45 @@ def show_events(controller, runtimes, settings):
 
         update_gui()
 
+    def open_sdl():
+        nonlocal runtimes
+
+        selected = filedialog.askopenfilename(
+            parent=root,
+            title="Open RadioBOSS SDL file",
+            initialdir=os.path.dirname(settings.get("admin_sdl", "")),
+            filetypes=[("RadioBOSS schedule", "*.sdl"), ("All files", "*.*")],
+        )
+        if not selected:
+            return
+
+        try:
+            new_events = Database({"admin_sdl": selected}).load_events()
+            if not new_events:
+                raise ValueError("The selected SDL file contains no events.")
+            new_controller = type(controller)(new_events)
+            new_runtimes = new_controller.refresh()
+        except Exception as exc:
+            messagebox.showerror("Unable to open SDL", str(exc), parent=root)
+            return
+
+        old_path = settings.get("admin_sdl", "")
+        settings["admin_sdl"] = selected
+        try:
+            save_settings(settings)
+        except OSError as exc:
+            settings["admin_sdl"] = old_path
+            messagebox.showerror("Unable to save settings", str(exc), parent=root)
+            return
+        controller.events = new_events
+        controller.week_offset = 0
+        runtimes = new_runtimes
+        search_var.set("")
+        conflict_var.set(False)
+        group_var.set("All")
+        public_calendar.set_schedule(new_events, runtimes)
+        update_gui()
+
     def previous_week():
 
         nonlocal runtimes
@@ -375,6 +427,7 @@ def show_events(controller, runtimes, settings):
     ) = create_menu(
         root,
         refresh_gui,
+        open_sdl,
         theme_var,
         change_theme,
         THEMES

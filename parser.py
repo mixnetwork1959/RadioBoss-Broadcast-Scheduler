@@ -207,7 +207,7 @@ def load_events(filename):
     with open(
         filename,
         "r",
-        encoding="utf-8",
+        encoding="utf-8-sig",
         errors="ignore"
     ) as file:
 

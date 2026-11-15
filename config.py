@@ -6,9 +6,17 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 
-SETTINGS_FILE = "settings.json"
+def application_directory():
+    """Keep portable settings beside the executable, not in the launch CWD."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+SETTINGS_FILE = application_directory() / "settings.json"
 
 
 def load_settings():

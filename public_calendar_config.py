@@ -10,6 +10,8 @@ import json
 import os
 from dataclasses import dataclass, asdict
 from typing import Dict, Iterable, List
+from pathlib import Path
+from config import application_directory
 
 
 # =====================================================
@@ -45,7 +47,8 @@ class PublicCalendarConfig:
         self,
         filename: str = "public_calendar.json"
     ):
-        self.filename = filename
+        chosen = Path(filename)
+        self.filename = str(chosen if chosen.is_absolute() else application_directory() / chosen)
         self.entries: Dict[str, PublicCalendarEntry] = {}
 
     # =================================================
